@@ -1,0 +1,113 @@
+﻿G609: SkillSwap Insert Script
+set search_path to skillswap;
+
+
+INSERT INTO "User" (UserID, Username, Phone, Email, Location, Bio, DOB) VALUES
+(1, 'Aarav', '9876543210', 'aarav@example.com', 'Gandhinagar', 'DAU', '2000-05-12'),
+(2, 'Maya', '9123456789', 'maya@example.com', 'Mumbai', 'IIT Bombay', '1999-08-21'),
+(3, 'Rohan', '9988776655', 'rohan@example.com', 'Ahmedabad', 'DAU', '2001-11-03'),
+(4, 'Anaya', '9090909090', 'anaya@example.com', 'Chennai', NULL, '2002-01-17'),
+(5, 'Dev', NULL, 'dev@example.com', 'Nagpur', 'IIT Bombay', '1998-06-30'),
+(6, 'Simran', '9443322110', 'simran@example.com', 'Delhi', 'IIT Delhi', '2000-12-25'),
+(7, 'Yash', '9988998899', 'yash@example.com', 'Chennai', 'IIT Madras', '1997-03-10'),
+(8, 'Neha', '9345678912', 'neha@example.com', 'Warangal', 'NIT Warangal', '2003-09-14'),
+(9, 'Kabir', NULL, NULL, NULL, NULL, NULL),
+(10, 'Ishaan', '9877123456', 'ishaan@example.com', 'Pilani', 'BITS Pilani', '2001-02-11'),
+(11, 'Riya', '9000011111', 'riya@example.com', 'Kolkata', NULL, '2002-10-05'),
+(12, 'Tara', '9300456789', 'tara@example.com', 'Ahmedabad', 'DAU', '2000-07-22'),
+(13, 'Aditya', '9234567890', 'aditya@example.com', 'Noida', NULL, '2002-03-19'),
+(14, 'Meera', '9812345678', 'meera@example.com', 'Hyderabad', 'IIIT Hyderabad', '1999-04-16'),
+(15, 'Veer', '9999999999', 'veer@example.com', 'Roorkee', 'IIT Roorkee', '1998-12-01');
+
+
+INSERT INTO Skill (SkillID, SkillName) VALUES
+(1, 'Arduino Uno Basics'),
+(2, 'C++ STL'),
+(3, 'Data Structures'),
+(4, 'Digital Logic Design'),
+(5, 'Control Systems'),
+(6, 'Machine Learning with Python'),
+(7, '3D Printing and CAD'),
+(8, 'Signal Processing Fundamentals');
+
+
+INSERT INTO UserhasSkill (UserID, SkillID) VALUES
+(1, 1), 
+(3, 3), 
+(7, 4), 
+(8, 5), 
+(10, 2),
+(12, 6),
+(14, 7),
+(15, 8),
+(2, 2), 
+(2, 3), 
+(5, 5), 
+(5, 4), 
+(6, 2), 
+(6, 3), 
+(6, 6); 
+
+
+INSERT INTO Resource (ResourceID, Title) VALUES
+(1, 'Arduino Uno: Getting Started Guide'),
+(2, 'C++ STL Cheat Sheet'),
+(3, 'Digital Logic Simulations Lab'),
+(4, 'Time Management for Students'),
+(5, 'UI/UX Basics for Beginners'),        
+(6, 'Control Systems Problem Book'),
+(7, 'Signal Processing Illustrated PDF'),
+(8, 'Machine Learning Concepts Overview'),
+(9, 'Introduction to Cryptography'),      
+(10, 'Effective Public Speaking Guide'); 
+
+
+INSERT INTO UserResourceUsage (ResourceID, UserID) VALUES
+(1, 1),
+(2, 2),
+(4, 2),
+(5, 2),
+(1, 3),
+(6, 3),
+(2, 5),
+(3, 5),
+(2, 6),
+(6, 6),
+(7, 6),
+(4, 10);
+
+
+INSERT INTO SpecialCourse (CourseID, Title, SkillID) VALUES
+(1, 'Machine Learning with Python', 6),
+(2, 'Signal Processing Fundamentals', 8),
+(3, 'Data Structures and Algorithms', 3);
+
+
+INSERT INTO SpecialCourseBatch (BatchID, NoOfStudent, StartDate, EndDate, CourseID) VALUES
+(101, 10, '2025-04-01', '2025-06-01', 1), 
+(102, 15, '2025-03-15', '2025-05-15', 2), 
+(103, 12, '2025-02-01', '2025-05-01', 3); 
+
+
+INSERT INTO UserRegisterIn (UserID, BatchID) VALUES
+(1, 101),        
+(2, 101), (2, 102),
+(3, 103),        
+(5, 101),        
+(6, 101), (6, 102), (6, 103),
+(7, 102),        
+(8, 103),        
+(10, 101), (10, 102),
+(12, 103);       
+
+
+INSERT INTO StudentTeacherAssociation
+(UserID_Student, UserID_Teacher, SkillID, Rating, ProgressPercentage, Status, StartTime, EndTime)
+VALUES
+(1, 6, 2, 2.80, 80, 'In Progress', '10:00:00', '11:00:00'),      
+(3, 6, 3, 4.80, 100, 'Completed', '14:00:00', '15:00:00'),
+(5, 6, 6, 4.00, 60, 'In Progress', '09:30:00', '10:30:00'),
+(8, 2, 3, 2.50, 50, 'In Progress', '17:00:00', '18:00:00'),
+(12, 5, 5, 4.20, 90, 'Completed', '11:00:00', '12:00:00'),
+(14, 10, 2, 5.00, 100, 'Completed', '15:00:00', '16:00:00'),
+(1, 10, 2, 2.30, 40, 'In Progress', '16:30:00', '17:30:00');

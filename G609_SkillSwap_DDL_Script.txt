@@ -1,0 +1,93 @@
+﻿G609: SkillSwap DDL Script
+CREATE SCHEMA SkillSwap;
+SET search_path TO SkillSwap;
+
+
+-- Table 1: User
+CREATE TABLE "User" (
+  UserID INT PRIMARY KEY,
+  Username VARCHAR(100) NOT NULL,
+  Phone VARCHAR(15),
+  Email VARCHAR(100) UNIQUE,
+  Location VARCHAR(100),
+  Bio TEXT,
+  DOB DATE
+);
+
+
+-- Table 2: Skill
+CREATE TABLE Skill (
+  SkillID INT PRIMARY KEY,
+  SkillName VARCHAR(100) NOT NULL UNIQUE
+);
+
+
+-- Table 3: UserhasSkill
+CREATE TABLE UserhasSkill (
+  UserID INT,
+  SkillID INT,
+  PRIMARY KEY (UserID, SkillID),
+  FOREIGN KEY (UserID) REFERENCES "User"(UserID) ON DELETE CASCADE,
+  FOREIGN KEY (SkillID) REFERENCES Skill(SkillID) ON DELETE CASCADE
+);
+
+
+-- Table 4: StudentTeacherAssociation
+CREATE TABLE StudentTeacherAssociation (
+  UserID_Student INT REFERENCES "User"(UserID) ON DELETE CASCADE,
+  UserID_Teacher INT,
+  SkillID INT,
+  Rating NUMERIC(3,2) CHECK (Rating >= 0 AND Rating <= 5),
+  ProgressPercentage INT CHECK (ProgressPercentage >= 0 AND ProgressPercentage <= 100),
+  Status VARCHAR(50),
+  StartTime TIME,
+  EndTime TIME,
+  PRIMARY KEY (UserID_Student, UserID_Teacher, SkillID),
+  FOREIGN KEY (UserID_Teacher, SkillID) REFERENCES UserhasSkill(UserID, SkillID) ON DELETE CASCADE
+);
+
+
+-- Table 5: Resource
+CREATE TABLE Resource (
+  ResourceID INT PRIMARY KEY,
+  Title VARCHAR(255) NOT NULL
+);
+
+
+-- Table 6: UserResourceUsage
+CREATE TABLE UserResourceUsage (
+  ResourceID INT,
+  UserID INT,
+  PRIMARY KEY (ResourceID, UserID),
+  FOREIGN KEY (ResourceID) REFERENCES Resource(ResourceID) ON DELETE CASCADE,
+  FOREIGN KEY (UserID) REFERENCES "User"(UserID) ON DELETE CASCADE
+);
+
+
+-- Table 7: SpecialCourse
+CREATE TABLE SpecialCourse (
+  CourseID INT PRIMARY KEY,
+  Title VARCHAR(255) NOT NULL,
+  SkillID INT NOT NULL,
+  FOREIGN KEY (SkillID) REFERENCES Skill(SkillID) ON DELETE RESTRICT
+);
+
+
+-- Table 8: SpecialCourseBatch
+CREATE TABLE SpecialCourseBatch (
+  BatchID INT PRIMARY KEY,
+  NoOfStudent INT CHECK (NoOfStudent >= 0), -- To be understood as the number of seats in the batch
+  StartDate DATE NOT NULL,
+  EndDate DATE NOT NULL,
+  CourseID INT REFERENCES SpecialCourse(CourseID) ON DELETE CASCADE
+);
+
+
+-- Table 9: UserRegisterIn
+CREATE TABLE UserRegisterIn (
+  UserID INT,
+  BatchID INT,
+  PRIMARY KEY (UserID, BatchID),
+  FOREIGN KEY (UserID) REFERENCES "User"(UserID) ON DELETE CASCADE,
+  FOREIGN KEY (BatchID) REFERENCES SpecialCourseBatch(BatchID) ON DELETE CASCADE
+);

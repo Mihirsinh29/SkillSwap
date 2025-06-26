@@ -1,0 +1,336 @@
+﻿G609: SkillSwap All Queries
+1. List all registered users
+2. List all users in a specific location
+3. Get a detailed profile of a user by ID 
+4. Find users who have not provided a bio 
+5. Count of users by location 
+6. Users born after a certain year
+7. Users who have more than n skill
+8. No. of users from one college (BIO- college name)
+9. List of Users who have the most no. of students
+10. List of users who do not have skill but are learning it
+11. List all skills in the platform 
+12. List users who offer a given skill
+13. Match learners with possible teachers for the same skill
+14. Most popular skills (by number of users offering it)
+15. Most Popular Skills (by no. of students  learning it)
+16. No. of users who have all skills rating greater than 4 or something 
+17. Learner's progress for each skill they're learning 
+18.  Skills where progress is 100%
+19. Average rating received by each teacher
+20. All ratings given to a teacher name  for every skill
+21. List of learners who gave low ratings (<3) 
+22. User who have learned more than n skills (100%)
+23. List all available special courses
+24. Batches currently running (between start and end dates)
+25. Users registered in a given batch
+26. Number of users registered per course
+27. Most accessed resources (no. of user use it)
+28. User using highest number of resources(Ranks/Descending order)
+29.  Resources used by a particular user
+30. Most popular user in each skill by calculating the average rating of user 
+31. Least Rated User as a teacher
+
+
+Some Good Queries:
+* List of Users who have the most no. of students
+* List of users who do not have skill but are learning it
+* Match learners with possible teachers for the same skill
+* Most popular skills (by number of users offering it)
+* Most popular skills (by number of students learning it)
+* No. of users who have all skills rating greater than 4 or something 
+* All ratings given to a teacher name for every skill
+* List of learners who gave low ratings (<3 or any range)
+* Users who have learned more than n skills (100%)
+* Batches currently running (between start and end dates)
+* Number of users registered per course
+* User using highest number of resources(Ranks/Descending order)
+* Most popular user in each skill by calculating the average rating of user 
+* Least Rated User as a teacher
+
+Top 3 Queries:
+1. Most popular user in each skill by calculating the average rating of user 
+2. List of users who do not have skill but are learning it
+3. No. of users who have all skills rating greater than 4 or something
+
+
+
+
+SQL Statements of All Queries:
+set search_path to SkillSwap;
+
+
+-- 1. List all registered users
+SELECT * FROM "User";
+
+
+-- 2. List all users in a specific location
+SELECT * FROM "User"
+WHERE Location = 'Chennai';  -- any example location
+
+
+-- 3. Get a detailed profile of a user by ID
+SELECT * FROM "User"
+WHERE UserID = 3;  -- any example userid
+
+
+-- 4. Find users who have not provided a bio
+SELECT userid, username FROM "User"
+WHERE Bio IS NULL;
+
+
+-- 5. Count of users by location
+SELECT Location, COUNT(*) AS UserCount
+FROM "User"
+GROUP BY Location
+ORDER BY UserCount DESC;
+
+
+-- 6. Users born after a certain year
+SELECT * FROM "User"
+WHERE EXTRACT(YEAR FROM DOB) > 2000; -- any example year
+
+
+-- 7. Users who have more than n skill
+SELECT u.UserID, u.Username, COUNT(uhs.SkillID) AS SkillCount
+FROM "User" u
+JOIN UserhasSkill uhs ON u.UserID = uhs.UserID
+GROUP BY u.UserID, u.Username
+HAVING COUNT(uhs.SkillID) > 2;  -- any example number of skill
+
+
+-- 8. No. of users from one college (BIO- college name)
+SELECT COUNT(*) AS CollegeUserCount
+FROM "User"
+WHERE Bio ILIKE '%IIT Bombay%';  -- any example college name
+
+
+-- 9. List of Users who have the most no. of students
+SELECT
+ sta.UserID_Teacher AS TeacherID,
+ u.Username,
+ COUNT(DISTINCT sta.UserID_Student) AS StudentCount
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON u.UserID = sta.UserID_Teacher
+GROUP BY sta.UserID_Teacher, u.Username
+ORDER BY StudentCount DESC;
+
+
+-- 10. List of users who do not have skill but are learning it
+SELECT DISTINCT
+ u.UserID,
+ u.Username,
+ s.SkillName
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON u.UserID = sta.UserID_Student
+JOIN Skill s ON s.SkillID = sta.SkillID
+WHERE NOT EXISTS (
+ SELECT 1
+ FROM UserhasSkill uhs
+ WHERE uhs.UserID = sta.UserID_Student
+   AND uhs.SkillID = sta.SkillID );
+
+
+--11. List all skills in the platform
+SELECT * FROM Skill;
+
+
+-- 12. List users who offer a given skill
+SELECT u.UserID, u.Username, s.SkillName
+FROM "User" u
+JOIN UserhasSkill us ON u.UserID = us.UserID
+JOIN Skill s ON us.SkillID = s.SkillID
+WHERE s.SkillName = 'C++ STL';  -- any example skill name
+
+
+-- 13. Match learners with possible teachers for the same skill
+SELECT
+ s.SkillName,
+ teacher.UserID AS TeacherID,
+ teacher.Username AS TeacherName
+FROM UserhasSkill uhs
+JOIN Skill s ON uhs.SkillID = s.SkillID
+JOIN StudentTeacherAssociation sta ON uhs.SkillID = sta.SkillID
+JOIN "User" teacher ON teacher.UserID = sta.UserID_Teacher
+WHERE uhs.UserID = 3;  -- Any example UserID
+
+
+-- 14.Most popular skills (by number of users offering it)
+SELECT
+ s.SkillName,
+ COUNT(DISTINCT sta.UserID_Teacher) AS TeacherCount
+FROM StudentTeacherAssociation sta
+JOIN Skill s ON sta.SkillID = s.SkillID
+GROUP BY s.SkillName
+ORDER BY TeacherCount DESC;
+
+
+-- 15. Most popular skills (by number of students learning it)
+SELECT s.SkillName, COUNT(sta.UserID_Student) AS StudentCount
+FROM StudentTeacherAssociation sta
+JOIN Skill s ON sta.SkillID = s.SkillID
+GROUP BY s.SkillName
+ORDER BY StudentCount DESC;
+
+
+-- 16. No. of users who have all skills rating greater than 4 or something 
+SELECT COUNT(*) AS NumUsers
+FROM (
+ SELECT UserID_Teacher
+ FROM (
+   SELECT UserID_Teacher, SkillID, AVG(Rating) AS avg_rating
+   FROM StudentTeacherAssociation
+   GROUP BY UserID_Teacher, SkillID
+ ) AS teacher_skill
+ GROUP BY UserID_Teacher
+ HAVING MIN(avg_rating) > 4
+) AS qualifying_teachers;
+
+
+-- 17. Learner's progress for each skill they're learning
+SELECT
+ u.Username AS Learner,
+ s.SkillName,
+ sta.ProgressPercentage
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON sta.UserID_Student = u.UserID
+JOIN Skill s ON sta.SkillID = s.SkillID;
+
+
+-- 18. Skills where progress is 100%
+SELECT
+ sta.UserID_Student AS UserID,
+ s.SkillName
+FROM StudentTeacherAssociation sta
+JOIN Skill s ON sta.SkillID = s.SkillID
+WHERE sta.ProgressPercentage = 100;
+
+
+-- 19. Average rating received by each teacher
+SELECT
+ u.Username AS Teacher,
+ ROUND(AVG(sta.Rating), 2) AS AvgRating
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON sta.UserID_Teacher = u.UserID
+WHERE sta.Rating IS NOT NULL
+GROUP BY u.Username;
+
+
+--20. All ratings given to a teacher name for every skill
+SELECT
+ s.SkillName,
+ learner.Username AS Learner,
+ teacher.Username AS Teacher,
+ sta.Rating
+FROM StudentTeacherAssociation sta
+JOIN Skill s ON sta.SkillID = s.SkillID
+JOIN "User" learner ON sta.UserID_Student = learner.UserID
+JOIN "User" teacher ON sta.UserID_Teacher = teacher.UserID
+WHERE teacher.Username = 'Simran';  -- Example teacher name
+
+
+-- 21. List of learners who gave low ratings (<3 or any range)
+SELECT
+ learner.UserID, learner.Username,
+ teacher.Username AS Teacher,
+ sta.Rating
+FROM StudentTeacherAssociation sta
+JOIN "User" learner ON sta.UserID_Student = learner.UserID
+JOIN "User" teacher ON sta.UserID_Teacher = teacher.UserID
+WHERE sta.Rating < 3;
+
+
+-- 22. Users who have learned more than n skills (100%)
+SELECT
+ u.UserID, u.Username, COUNT(*) AS LearnedSkills
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON sta.UserID_Student = u.UserID
+WHERE sta.ProgressPercentage = 100
+GROUP BY u.UserID, u.Username
+HAVING COUNT(*) > 1;  -- Example value of n
+
+
+-- 23. List all available special courses
+SELECT * FROM SpecialCourse;
+
+
+-- 24. (Can simplify it as well)Batches currently running (between start and end dates)
+SELECT * FROM SpecialCourseBatch
+WHERE CURRENT_DATE BETWEEN StartDate AND EndDate;
+
+
+-- 25. Users registered in a given batch
+SELECT u.UserID, u.Username
+FROM UserRegisterIn uri
+JOIN "User" u ON uri.UserID = u.UserID
+WHERE uri.BatchID = 101;  -- Example BatchID
+
+
+-- 26. Number of users registered per course
+SELECT
+ sc.Title AS CourseTitle,
+ COUNT(uri.UserID) AS RegisteredUsers
+FROM UserRegisterIn uri
+JOIN SpecialCourseBatch scb ON uri.BatchID = scb.BatchID
+JOIN SpecialCourse sc ON scb.CourseID = sc.CourseID
+GROUP BY sc.Title
+ORDER BY RegisteredUsers DESC;
+
+
+-- 27. Most accessed resources
+SELECT r.Title, COUNT(uru.UserID) AS AccessCount
+FROM UserResourceUsage uru
+JOIN Resource r ON uru.ResourceID = r.ResourceID
+GROUP BY r.Title
+ORDER BY AccessCount DESC;
+
+
+-- 28. User using highest number of resources(Ranks/Descending order)
+SELECT
+ uru.UserID,
+ u.Username,
+ COUNT(*) AS ResourceCount
+FROM UserResourceUsage uru
+JOIN "User" u ON u.UserID = uru.UserID
+GROUP BY uru.UserID, u.Username
+ORDER BY ResourceCount DESC
+
+
+-- 29. Resources used by a particular user
+SELECT r.Title
+FROM UserResourceUsage uru
+JOIN Resource r ON uru.ResourceID = r.ResourceID
+WHERE uru.UserID = 2;  -- Example UserID
+
+
+-- 30. Most popular user in each skill by calculating the average rating of user
+SELECT  s.SkillName, u.UserID, u.Username, ROUND(ar.AvgRating, 2) AS AvgRating
+FROM (
+ SELECT sta.SkillID, sta.UserID_Teacher, AVG(sta.Rating) AS AvgRating
+ FROM StudentTeacherAssociation sta
+ GROUP BY sta.SkillID, sta.UserID_Teacher
+) ar --avg rating (What is the average rating given to teacher X for skill Y?)
+JOIN (
+ SELECT SkillID, MAX(avg_rating) AS MaxAvgRating
+ FROM (
+   SELECT sta.SkillID, sta.UserID_Teacher,  AVG(sta.Rating) AS avg_rating
+   FROM StudentTeacherAssociation sta
+   GROUP BY sta.SkillID, sta.UserID_Teacher
+ ) AS temp
+ GROUP BY SkillID
+) mr --max rating (What is the highest average rating that any teacher has for skill Y?)
+ON ar.SkillID = mr.SkillID AND ar.AvgRating = mr.MaxAvgRating
+JOIN "User" u ON u.UserID = ar.UserID_Teacher
+JOIN Skill s ON s.SkillID = ar.SkillID;
+
+
+-- 31. Least Rated User as a teacher
+SELECT
+ u.UserID,
+ u.Username,
+ ROUND(AVG(sta.Rating), 2) AS AvgRating
+FROM StudentTeacherAssociation sta
+JOIN "User" u ON u.UserID = sta.UserID_Teacher
+GROUP BY u.UserID, u.Username
+ORDER BY AvgRating ASC
+LIMIT 1;
